@@ -5,7 +5,7 @@
   "description": "Telegram bot to interact with opacity.io file storage.",
   "main": "index.js",
   "scripts": {
-    "dev": "nodemon --experimental-modules --no-warnings --require dotenv/config",
+    "dev": "nodemon --experimental-modules --require dotenv/config",
     "test": "echo \"Error: no test specified\" && exit 1"
   },
   "keywords": [],
