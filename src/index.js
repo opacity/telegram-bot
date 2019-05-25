@@ -1,3 +1,5 @@
-console.log(process.env.TG_USERNAME);
+import startBot from "./bot.js";
 
-export default true;
+const bot = startBot();
+
+export default bot;
