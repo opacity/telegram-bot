@@ -1,0 +1,17 @@
+{
+  "name": "opqbot",
+  "version": "0.1.0",
+  "type": "module",
+  "description": "Telegram bot to interact with opacity.io file storage.",
+  "main": "index.js",
+  "scripts": {
+    "dev": "nodemon --experimental-modules --no-warnings --require dotenv/config",
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "dependencies": {
+    "nodemon": "^1.19.0"
+  }
+}
