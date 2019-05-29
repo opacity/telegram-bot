@@ -6,12 +6,14 @@
   "main": "index.js",
   "scripts": {
     "dev": "nodemon --experimental-modules --require dotenv/config",
+    "prod": "node --experimental-modules --require dotenv/config index.js",
     "test": "echo \"Error: no test specified\" && exit 1"
   },
   "keywords": [],
   "author": "",
   "license": "ISC",
   "dependencies": {
+    "handlebars": "^4.1.2",
     "nodemon": "^1.19.0"
   }
 }
