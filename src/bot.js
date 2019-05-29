@@ -3,6 +3,7 @@ import ErrorModule from "./modules/error.js";
 import InfoModule from "./modules/info.js";
 import DownloadModule from "./modules/download.js";
 import UploadModule from "./modules/upload.js";
+import { isCommand, argumentMiddleware } from "./util.js";
 
 export default async function startBot() {
   const token = process.env.TG_API_TOKEN;
@@ -13,6 +14,9 @@ export default async function startBot() {
 
   const handle = process.env.OPQ_HANDLE;
   const endpoint = process.env.OPQ_ENDPOINT;
+
+  // Provide ctx.arg and ctx.argv for all commands
+  bot.use(Telegraf.optional(isCommand, argumentMiddleware));
 
   await ErrorModule.start(bot);
   await InfoModule.start(bot);

@@ -6,6 +6,25 @@ const compiledViews = {};
 
 export const HANDLE_REGEX = /\b[0-9a-f]{128}\b/i;
 
+export function isCommand(ctx) {
+  const msg = ctx.message || null;
+
+  return msg && msg.entities && msg.entities[0].type === "bot_command";
+}
+
+export function argumentMiddleware(ctx, next) {
+  const msg = ctx.message || null;
+  const command = msg.entities[0];
+  const arg = msg.text.substr(command.length + 1);
+
+  ctx.arg = arg;
+  ctx.argv = arg.trim().split(/\s+/);
+
+  console.log("args", ctx.argv)
+
+  next();
+}
+
 export async function contextReply(ctx, msg, opts) {
   if(!ctx.state) {
     ctx.state = {};
