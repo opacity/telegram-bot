@@ -14,6 +14,10 @@
   "license": "ISC",
   "dependencies": {
     "handlebars": "^4.1.2",
-    "nodemon": "^1.19.0"
+    "ioredis": "^4.9.5",
+    "redlock": "^3.1.2"
+  },
+  "devDependencies": {
+    "nodemon": "^1.19.1"
   }
 }

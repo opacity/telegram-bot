@@ -15,7 +15,6 @@ export default class UploadModule extends BasicModule {
 
     this.maxSizeMiB = 50;
     this.maxSize = this.maxSizeMiB * 1024 * 1024;
-
     this.masterHandle = new Opaque.MasterHandle(
       {
         handle
@@ -27,35 +26,53 @@ export default class UploadModule extends BasicModule {
     );
   }
 
-  commands(bot) {
+  async commands(bot) {
     bot.on("document", async (ctx) => {
       const fileInfo = ctx.message.document;
       await this.upload(ctx, fileInfo);
-    })
+    });
 
     bot.on("photo", async (ctx) => {
       // Get highest resolution of photo
-      const fileInfo = ctx.message.photo.reverse()[0]
-      await this.upload(ctx, fileInfo)
-    })
+      const fileInfo = ctx.message.photo.reverse()[0];
+      await this.upload(ctx, fileInfo);
+    });
 
     bot.on("audio", async (ctx) => {
-      const fileInfo = ctx.message.audio
-      await this.upload(ctx, fileInfo)
-    })
+      const fileInfo = ctx.message.audio;
+      await this.upload(ctx, fileInfo);
+    });
 
     bot.on("video", async (ctx) => {
-      const fileInfo = ctx.message.video
-      await this.upload(ctx, fileInfo)
-    })
+      const fileInfo = ctx.message.video;
+      await this.upload(ctx, fileInfo);
+    });
   }
 
   async upload(ctx, documentInfo) {
     await contextReply(ctx, "Checking file...");
     const fileInfo = await getFileInfo(ctx, documentInfo.file_id);
     const fileName = documentInfo.file_name || path.basename(fileInfo.file_path);
+    const userId = ctx.message.from.id;
+    const lockKey = "lock:upload:" + userId;
+    let lock;
+
+    // TODO: Add lock time to opts
+    try {
+      lock = await ctx.lock(lockKey, 60 * 1000);
+    } catch(e) {
+      const ttl = await ctx.redis.ttl(lockKey);
+      ctx.state.isClientError = true;
+
+      if(ttl > 58) {
+        throw "Please only upload a single file at a time.";
+      } else {
+        throw `Please wait another ${ttl} seconds.`;
+      }
+    }
 
     if(fileInfo.file_size > this.maxSize) {
+      ctx.state.isClientError = true;
       throw `File too big. Only files up to ${this.maxSizeMiB}MiB accepted.\nFor larger files use https://opacity.io/`;
     }
 
