@@ -20,8 +20,6 @@ export function argumentMiddleware(ctx, next) {
   ctx.arg = arg;
   ctx.argv = arg.trim().split(/\s+/);
 
-  console.log("args", ctx.argv)
-
   next();
 }
 
@@ -49,7 +47,6 @@ export async function render(viewName, context) {
     const viewPath = path.resolve("src/views/", viewName + ".html");
     const rawView = await fs.readFile(viewPath);
     view = Handlebars.compile(rawView.toString());
-    console.log("VIEW", context);
     compiledViews[viewName] = view;
   }
 
