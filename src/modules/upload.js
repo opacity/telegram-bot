@@ -2,7 +2,11 @@ import BasicModule from "./basicModule.js";
 import Opaque from "opaque";
 import { getFile, getFileInfo } from "../core/file.js";
 import path from "path";
-import { contextReply, render } from "../util.js";
+import {
+  contextReply,
+  isGroupChat,
+  render
+} from "../util.js";
 
 export default class UploadModule extends BasicModule {
   constructor(bot, opts) {
@@ -13,7 +17,7 @@ export default class UploadModule extends BasicModule {
     const uploadOpts = { endpoint };
     const downloadOpts = { endpoint };
 
-    this.maxSizeMiB = 50;
+    this.maxSizeMiB = 20;
     this.maxSize = this.maxSizeMiB * 1024 * 1024;
     this.masterHandle = new Opaque.MasterHandle(
       {
@@ -50,6 +54,16 @@ export default class UploadModule extends BasicModule {
   }
 
   async upload(ctx, documentInfo) {
+    // Do nothing in groups
+    if(isGroupChat(ctx)) {
+      return;
+    }
+
+    if(documentInfo.file_size > this.maxSize) {
+      ctx.state.isClientError = true;
+      throw `File too large. Only files up to ${this.maxSizeMiB}MiB are accepted.\n\nFor larger files please use https://opacity.io/`;
+    }
+
     await contextReply(ctx, "Checking file...");
     const fileInfo = await getFileInfo(ctx, documentInfo.file_id);
     const fileName = documentInfo.file_name || path.basename(fileInfo.file_path);
@@ -71,11 +85,6 @@ export default class UploadModule extends BasicModule {
       }
     }
 
-    if(fileInfo.file_size > this.maxSize) {
-      ctx.state.isClientError = true;
-      throw `File too big. Only files up to ${this.maxSizeMiB}MiB accepted.\nFor larger files use https://opacity.io/`;
-    }
-
     await contextReply(ctx, "Fetching file...");
     const file = await getFile(fileInfo.file_path);
     await contextReply(ctx, "Uploading file...");
@@ -84,18 +93,13 @@ export default class UploadModule extends BasicModule {
       name: fileName
     });
 
-    upload.on("progress", async (progress) => {
-      console.log("progress", progress);
-      await contextReply(ctx, "Progress");
-    });
-
     upload.on("finish", this.finishUpload.bind(this, ctx));
   }
 
   async finishUpload(ctx, event) {
     const msg = await render("upload", { handle: event.handle });
 
-    contextReply(ctx, msg, {
+    await contextReply(ctx, msg, {
       parse_mode: "HTML",
       disable_web_page_preview: true
     });
