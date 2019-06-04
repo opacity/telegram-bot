@@ -11,7 +11,9 @@ export default class ErrorModule extends BasicModule {
       await next(ctx);
     } catch(error) {
       if(ctx.state.isClientError) {
-        await contextReply(ctx, error.message || error);
+        await contextReply(ctx, error.message || error, {
+          disable_web_page_preview: true
+        });
       } else {
         const msg = await render("error", { error });
 
