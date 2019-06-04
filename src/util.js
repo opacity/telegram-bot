@@ -52,3 +52,11 @@ export async function render(viewName, context) {
 
   return view(context);
 }
+
+export function isPrivateChat(ctx) {
+  return ctx.chat.type === "private";
+}
+
+export function isGroupChat(ctx) {
+  return !(isPrivateChat(ctx));
+}
