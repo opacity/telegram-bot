@@ -17,6 +17,7 @@ export default class UploadModule extends BasicModule {
     const uploadOpts = { endpoint };
     const downloadOpts = { endpoint };
 
+    this.cooldown = parseInt(opts.cooldown, 10) || 60;
     this.maxSizeMiB = 20;
     this.maxSize = this.maxSizeMiB * 1024 * 1024;
     this.masterHandle = new Opaque.MasterHandle(
@@ -71,14 +72,13 @@ export default class UploadModule extends BasicModule {
     const lockKey = "lock:upload:" + userId;
     let lock;
 
-    // TODO: Add lock time to opts
     try {
-      lock = await ctx.lock(lockKey, 60 * 1000);
+      lock = await ctx.lock(lockKey, this.cooldown * 1000);
     } catch(e) {
       const ttl = await ctx.redis.ttl(lockKey);
       ctx.state.isClientError = true;
 
-      if(ttl > 58) {
+      if(ttl > (this.cooldown - 2)) {
         throw "Please only upload a single file at a time.";
       } else {
         throw `Please wait another ${ttl} seconds.`;
@@ -88,20 +88,29 @@ export default class UploadModule extends BasicModule {
     await contextReply(ctx, "Fetching file...");
     const file = await getFile(fileInfo.file_path);
     await contextReply(ctx, "Uploading file...");
-    const upload = this.masterHandle.uploadFile("/", {
-      data: file,
-      name: fileName
+
+    const upload = new Opaque.Upload(
+      { data: file, name: fileName },
+      this.masterHandle,
+      this.masterHandle.uploadOpts
+    );
+
+    console.log("Waiting for finish");
+    const result = await new Promise((resolve, reject) => {
+      upload.on("finish", resolve);
+      upload.on("error", reject);
     });
 
-    upload.on("finish", this.finishUpload.bind(this, ctx));
-  }
-
-  async finishUpload(ctx, event) {
-    const msg = await render("upload", { handle: event.handle });
+    const msg = await render("upload", { handle: result.handle });
 
     await contextReply(ctx, msg, {
       parse_mode: "HTML",
       disable_web_page_preview: true
     });
+
+    ctx.logStats("upload", {
+      bytes: documentInfo.file_size,
+      count: 1
+    })
   }
 }
