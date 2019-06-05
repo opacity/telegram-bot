@@ -95,7 +95,6 @@ export default class UploadModule extends BasicModule {
       this.masterHandle.uploadOpts
     );
 
-    console.log("Waiting for finish");
     const result = await new Promise((resolve, reject) => {
       upload.on("finish", resolve);
       upload.on("error", reject);
