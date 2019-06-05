@@ -13,6 +13,8 @@
   "author": "",
   "license": "ISC",
   "dependencies": {
+    "bytes": "^3.1.0",
+    "format-number": "^3.0.0",
     "handlebars": "^4.1.2",
     "ioredis": "^4.9.5",
     "redlock": "^3.1.2"
