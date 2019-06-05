@@ -6,7 +6,7 @@ export default class DownloadModule extends BasicModule {
   constructor(bot, opts) {
     super(bot, opts);
 
-    this.maxSizeMiB = 50;
+    this.maxSizeMiB = 20;
     this.maxSize = this.maxSizeMiB * 1024 * 1024;
   }
 
@@ -26,12 +26,12 @@ export default class DownloadModule extends BasicModule {
 
       download.on("error", asyncerr => {
         throw err;
-      })
+      });
 
       const metadata = await download.metadata();
 
       if(metadata.size > this.maxSize) {
-        return contextReply(ctx, "File is too big!");
+        return contextReply(ctx, `File too large. Only files up to ${this.maxSizeMiB}MiB are accepted.\n\nFor larger files please use https://opacity.io/`);
       }
 
       await contextReply(ctx, "Downloading file...");
@@ -42,21 +42,26 @@ export default class DownloadModule extends BasicModule {
         source: buf,
         filename: metadata.name
       });
+
       const reply = await ctx.state.reply;
       ctx.deleteMessage(reply.message_id);
+
+      ctx.logStats("download", {
+        bytes: metadata.size,
+        count: 1
+      });
 
     } catch(error) {
       let msg;
 
-      if (error.response) {
-        msg = error.response.data;
-      } else {
-        msg = error.message || error;
-      }
-
       console.error("Download Error:");
       console.error(error);
-      contextReply(ctx, msg);
+
+      if(error.response && error.response.data && error.response.data === "such data does not exist") {
+        throw "Could not find a file with that handle";
+      } else {
+        throw error.message;
+      }
     }
   }
 }
