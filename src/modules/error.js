@@ -15,7 +15,9 @@ export default class ErrorModule extends BasicModule {
           disable_web_page_preview: true
         });
       } else {
-        const msg = await render("error", { error });
+        const msg = await render("error", {
+          error: error.message || error
+        });
 
         await contextReply(ctx, msg, {
           parse_mode: "HTML",
