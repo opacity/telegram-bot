@@ -21,7 +21,7 @@ export default class DownloadModule extends BasicModule {
       await contextReply(ctx, "Looking up file...", {
         reply_to_message_id: ctx.message.message_id
       });
-      
+
       const download = new Opaque.Download(handle, {
         autoStart: false,
         endpoint: this.opts.endpoint
@@ -63,6 +63,7 @@ export default class DownloadModule extends BasicModule {
       console.error(error);
 
       if(error.response && error.response.data && error.response.data === "such data does not exist") {
+        ctx.state.isClientError = true;
         throw "Could not find a file with that handle";
       } else {
         throw error.message;
