@@ -18,7 +18,10 @@ export default class DownloadModule extends BasicModule {
     const handle = ctx.message.text.match(HANDLE_REGEX)[0].trim();
 
     try {
-      await contextReply(ctx, "Looking up file...");
+      await contextReply(ctx, "Looking up file...", {
+        reply_to_message_id: ctx.message.message_id
+      });
+      
       const download = new Opaque.Download(handle, {
         autoStart: false,
         endpoint: this.opts.endpoint
@@ -41,6 +44,8 @@ export default class DownloadModule extends BasicModule {
       await ctx.replyWithDocument({
         source: buf,
         filename: metadata.name
+      }, {
+        reply_to_message_id: ctx.message.message_id
       });
 
       const reply = await ctx.state.reply;

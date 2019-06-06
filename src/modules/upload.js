@@ -65,7 +65,10 @@ export default class UploadModule extends BasicModule {
       throw `File too large. Only files up to ${this.maxSizeMiB}MiB are accepted.\n\nFor larger files please use https://opacity.io/`;
     }
 
-    await contextReply(ctx, "Checking file...");
+    await contextReply(ctx, "Checking file...", {
+      reply_to_message_id: ctx.message.message_id
+    });
+    
     const fileInfo = await getFileInfo(ctx, documentInfo.file_id);
     const fileName = documentInfo.file_name || path.basename(fileInfo.file_path);
     const userId = ctx.message.from.id;
