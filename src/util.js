@@ -32,7 +32,13 @@ export async function contextReply(ctx, msg, opts) {
     ctx.state.reply = ctx.reply(msg, opts);
   } else {
     const reply = await ctx.state.reply;
-    ctx.state.reply = ctx.telegram.editMessageText(reply.chat.id, reply.message_id, null, msg, opts);
+    ctx.state.reply = ctx.telegram.editMessageText(
+      reply.chat.id,
+      reply.message_id,
+      null,
+      msg,
+      opts
+    );
   }
 
   return await ctx.state.reply;
@@ -53,10 +59,18 @@ export async function render(viewName, context) {
   return view(context);
 }
 
-export function isPrivateChat(ctx) {
-  return ctx.chat.type === "private";
+export function isPrivateChat(ctx, next) {
+  if(ctx.chat.type === "private") {
+    return next ? next() : true;
+  }
+
+  return false;
 }
 
-export function isGroupChat(ctx) {
-  return !(isPrivateChat(ctx));
+export function isGroupChat(ctx, next) {
+  if(!isPrivateChat(ctx)) {
+    return next ? next() : true;
+  }
+
+  return false;
 }
