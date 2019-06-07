@@ -1,9 +1,17 @@
+import Composer from "telegraf";
 import BasicModule from "./basicModule.js";
 import { contextReply, render } from "../util.js";
 
+const {
+  command,
+  privateChat
+} = Composer;
+
 export default class InfoModule extends BasicModule {
-  commands() {
-    this.bot.start(this.sendInfo);
+  commands(bot) {
+    bot.use(
+      privateChat(command(["start", "info"], this.sendInfo))
+    );
   }
 
   async sendInfo(ctx) {

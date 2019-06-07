@@ -59,18 +59,38 @@ export async function render(viewName, context) {
   return view(context);
 }
 
-export function isPrivateChat(ctx, next) {
-  if(ctx.chat.type === "private") {
-    return next ? next() : true;
+export function findHandle(ctx) {
+  const chatMsg = ctx.message;
+  const replyMsg = ctx.message.reply_to_message || null;
+  let handle = false;
+
+  if(replyMsg && replyMsg.text) {
+    const match = replyMsg.text.match(HANDLE_REGEX);
+    handle = match && match[0] ? match[0].trim() : handle;
   }
 
-  return false;
+  if(!handle && chatMsg && chatMsg.text) {
+    const match = chatMsg.text.match(HANDLE_REGEX);
+    handle = match && match[0] ? match[0].trim() : handle;
+  }
+
+  return handle;
 }
 
-export function isGroupChat(ctx, next) {
-  if(!isPrivateChat(ctx)) {
-    return next ? next() : true;
-  }
+export function findFileInfo(ctx) {
+  const chatMsg = ctx.message;
+  const replyMsg = ctx.message.reply_to_message || null;
 
-  return false;
+  return findFileInfoInMsg(replyMsg) || findFileInfoInMsg(chatMsg);
+}
+
+export function findFileInfoInMsg(msg) {
+  if(!msg) {
+    return null;
+  } else if(msg.photo) {
+    // Get highest resolution of photo
+    return msg.photo.reverse()[0];
+  } else {
+    return msg.video || msg.audio || msg.document || null;
+  }
 }

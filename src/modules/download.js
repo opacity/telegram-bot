@@ -1,6 +1,16 @@
 import BasicModule from "./basicModule.js";
-import { contextReply, HANDLE_REGEX } from "../util.js";
+import Composer from "telegraf";
+import {
+  findHandle,
+  contextReply
+} from "../util.js";
 import Opaque from "opaque";
+
+const {
+  privateChat,
+  groupChat,
+  mention
+} = Composer;
 
 export default class DownloadModule extends BasicModule {
   constructor(bot, opts) {
@@ -11,11 +21,22 @@ export default class DownloadModule extends BasicModule {
   }
 
   commands(bot) {
-    bot.hears(HANDLE_REGEX, this.download.bind(this));
+    const username = this.bot.options.username;
+    const download = this.download.bind(this);
+
+    bot.use(
+      privateChat(download),
+      groupChat(mention(username, download))
+    );
   }
 
-  async download(ctx) {
-    const handle = ctx.message.text.match(HANDLE_REGEX)[0].trim();
+  async download(ctx, next) {
+    // Look for handle in message and reply message text
+    const handle = findHandle(ctx);
+
+    if(!handle) {
+      return next();
+    }
 
     try {
       await contextReply(ctx, "Looking up file...", {
@@ -27,7 +48,7 @@ export default class DownloadModule extends BasicModule {
         endpoint: this.opts.endpoint
       });
 
-      download.on("error", asyncerr => {
+      download.on("error", async err => {
         throw err;
       });
 

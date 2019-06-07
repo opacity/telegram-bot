@@ -1,10 +1,15 @@
 import bytes from "bytes"
 import moment from "moment";
-import format from "format-number"
+import format from "format-number";
+import Composer from "telegraf";
 import BasicModule from "./basicModule.js";
 import { contextReply, render } from "../util.js";
 
 const TIME_FORMAT = "Y.MM.DD.HH";
+const {
+  command,
+  privateChat
+} = Composer;
 
 export default class StatsModule extends BasicModule {
   init(bot) {
@@ -15,7 +20,11 @@ export default class StatsModule extends BasicModule {
   }
 
   commands(bot) {
-    bot.command("stats", this.showStats.bind(this));
+    const showStats = this.showStats.bind(this);
+
+    bot.use(
+      privateChat(command("stats", showStats))
+    );
   }
 
   async showStats(ctx) {

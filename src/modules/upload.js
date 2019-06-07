@@ -1,12 +1,19 @@
-import BasicModule from "./basicModule.js";
-import Opaque from "opaque";
-import { getFile, getFileInfo } from "../core/file.js";
 import path from "path";
+import Composer from "telegraf";
+import Opaque from "opaque";
+import BasicModule from "./basicModule.js";
+import { getFile, getFileInfo } from "../core/file.js";
 import {
+  findFileInfo,
   contextReply,
-  isGroupChat,
   render
 } from "../util.js";
+
+const {
+  privateChat,
+  groupChat,
+  mention
+} = Composer;
 
 export default class UploadModule extends BasicModule {
   constructor(bot, opts) {
@@ -32,32 +39,20 @@ export default class UploadModule extends BasicModule {
   }
 
   async commands(bot) {
-    bot.on("document", async (ctx) => {
-      const fileInfo = ctx.message.document;
-      await this.upload(ctx, fileInfo);
-    });
+    const username = this.bot.options.username;
+    const upload = this.upload.bind(this);
 
-    bot.on("photo", async (ctx) => {
-      // Get highest resolution of photo
-      const fileInfo = ctx.message.photo.reverse()[0];
-      await this.upload(ctx, fileInfo);
-    });
-
-    bot.on("audio", async (ctx) => {
-      const fileInfo = ctx.message.audio;
-      await this.upload(ctx, fileInfo);
-    });
-
-    bot.on("video", async (ctx) => {
-      const fileInfo = ctx.message.video;
-      await this.upload(ctx, fileInfo);
-    });
+    bot.use(
+      privateChat(upload),
+      groupChat(mention(username, upload))
+    );
   }
 
-  async upload(ctx, documentInfo) {
-    // Do nothing in groups
-    if(isGroupChat(ctx)) {
-      return;
+  async upload(ctx, next) {
+    const documentInfo = await findFileInfo(ctx);
+
+    if(!documentInfo) {
+      return next();
     }
 
     if(documentInfo.file_size > this.maxSize) {
