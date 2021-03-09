@@ -17,9 +17,13 @@
     "format-number": "^3.0.0",
     "handlebars": "^4.1.2",
     "ioredis": "^4.9.5",
-    "redlock": "^3.1.2"
+    "moment": "^2.29.1",
+    "opaque": "github:opacity/opaque#0.4.6",
+    "redlock": "^3.1.2",
+    "telegraf": "^3.38.0"
   },
   "devDependencies": {
+    "dotenv": "^8.2.0",
     "nodemon": "^1.19.1"
   }
 }
